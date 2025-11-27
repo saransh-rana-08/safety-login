@@ -1,6 +1,5 @@
-package com.example.lms_login.config;
+package com.example.women_safety.config;
 
-import com.example.lms_login.security.JwtFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -12,8 +11,6 @@ import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
@@ -21,9 +18,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private final JwtFilter jwtFilter;
-
-    // ⭐ Global CORS for React Native & web
+    // ⭐ Global CORS for mobile + web
     @Bean
     public WebMvcConfigurer corsConfigurer() {
         return new WebMvcConfigurer() {
@@ -31,7 +26,7 @@ public class SecurityConfig {
             public void addCorsMappings(CorsRegistry registry) {
                 registry.addMapping("/**")
                         .allowedOrigins("*")
-                        .allowedMethods("*")
+                        .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                         .allowedHeaders("*")
                         .allowCredentials(false);
             }
@@ -43,32 +38,22 @@ public class SecurityConfig {
 
         http
                 .csrf(csrf -> csrf.disable())
-                .cors(cors -> {})  // ⭐ enable Spring Security CORS
+                .cors(cors -> {})  // enable Spring Security CORS
 
                 .authorizeHttpRequests(auth -> auth
-                        // ⭐ PUBLIC ENDPOINTS
                         .requestMatchers(
-                                "/api/auth/login",
-                                "/api/auth/register",
-                                "/api/auth/me",
-                                "/api/auth/users",
-                                "/api/auth/students",
-                                "/api/auth/faculty",
-                                "/api/auth/faculty/**",
+                                "/auth/login",
+                                "/auth/register",
+                                "/auth/me",
+                                "/auth/user/**",
                                 "/error"
                         ).permitAll()
-
-                        // ⭐ All other routes require JWT authentication
-                        .anyRequest().authenticated()
+                        .anyRequest().permitAll()   // ⭐ EVERYTHING ALLOWED
                 )
 
-                // ⭐ JWT requires stateless sessions
                 .sessionManagement(session ->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 );
-
-        // ⭐ Add your JWT filter
-        http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
